@@ -14,16 +14,19 @@ class CategoryService extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
 
+    final String url = '${baseUrl}/product-category/get-all';
+    debugPrint('Fetching categories from: $url');
+
     try {
       debugPrint('BASE URL: $baseUrl');
 
       final res = await http.get(
-        Uri.parse('$baseUrl/product-category/get-all'),
+        Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
       );
 
       debugPrint('Response Body: ${res.body}');
-
+      
       final data = json.decode(res.body);
       categories = (data['categories'] as List)
           .map((e) => Category.fromJson(e))

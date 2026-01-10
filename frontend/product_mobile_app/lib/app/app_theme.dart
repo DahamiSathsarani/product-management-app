@@ -7,7 +7,7 @@ class AppTheme {
     scaffoldBackgroundColor: Colors.white,
 
     appBarTheme: AppBarTheme(
-      backgroundColor: AppColors.blackColor,
+      backgroundColor: AppColors.yellowColor,
       foregroundColor: Colors.white,
       titleTextStyle: TextStyle(
         fontFamily: 'Roboto',
