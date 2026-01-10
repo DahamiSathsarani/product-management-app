@@ -18,7 +18,7 @@ class ProductCategoryRepository
 
     public function all()
     {
-        return ProductCategory::with('product')->where('is_active', 1)->get();
+        return ProductCategory::with('product')->get();
     }
 
     public function update($id, array $data)
