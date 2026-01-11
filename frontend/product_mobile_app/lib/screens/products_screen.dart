@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import 'package:product_mobile_app/app/app_colors.dart';
 import 'package:product_mobile_app/services/product_service.dart';
 import 'package:product_mobile_app/services/category_service.dart';
 import 'package:product_mobile_app/widgets/filter_sheet.dart';
 import 'package:product_mobile_app/widgets/toast_alert.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'add_product_screen.dart';
 
 class ProductScreen extends StatefulWidget {
@@ -24,8 +24,27 @@ class _ProductScreenState extends State<ProductScreen> {
   @override
   void initState() {
     super.initState();
+
+    Future<void> checkConnectivityAndLoadProducts() async {
+      final productService = context.read<ProductService>();
+
+      List<ConnectivityResult> connectivityResults = await Connectivity().checkConnectivity();
+       bool isOnline = connectivityResults.any(
+        (result) => result != ConnectivityResult.none,
+      );
+      debugPrint('isOnline: $isOnline');
+
+      if (!isOnline) {
+        debugPrint("Device is offline, loading local data");
+        await productService.fetchProductsOffline();
+      } else {
+        debugPrint("Device is online, fetching from API");
+        await productService.fetchProducts();
+      }
+    }
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProductService>().fetchProducts();
+      checkConnectivityAndLoadProducts();
     });
   }
 
@@ -360,7 +379,7 @@ class _ProductScreenState extends State<ProductScreen> {
               await context.read<ProductService>().deleteProduct(productId);
               AppToast.success('Product deleted');
             },
-            child: const Text('Delete'),
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

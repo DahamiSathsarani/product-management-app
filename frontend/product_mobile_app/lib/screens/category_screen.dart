@@ -3,6 +3,7 @@ import 'package:product_mobile_app/app/app_colors.dart';
 import 'package:product_mobile_app/widgets/toast_alert.dart';
 import 'package:provider/provider.dart';
 import '../services/category_service.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class CategoryScreen extends StatefulWidget {
   const CategoryScreen({super.key});
@@ -15,8 +16,27 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   void initState() {
     super.initState();
+
+    Future<void> checkConnectivityAndLoadProducts() async {
+      final categoryService = context.read<CategoryService>();
+
+      List<ConnectivityResult> connectivityResults = await Connectivity().checkConnectivity();
+      bool isOnline = connectivityResults.any(
+        (result) => result != ConnectivityResult.none,
+      );
+      debugPrint('isOnline: $isOnline');
+
+      if (!isOnline) {
+        debugPrint("Device is offline, loading local data");
+        await categoryService.fetchCategoriesOffline();
+      } else {
+        debugPrint("Device is online, fetching from API");
+        await categoryService.fetchCategories();
+      }
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CategoryService>().fetchCategories();
+      checkConnectivityAndLoadProducts();
     });
   }
 
@@ -86,9 +106,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                   child: Align(
                                     alignment: Alignment.centerLeft, 
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                                       decoration: BoxDecoration(
-                                        color: c.isActive == 1 ? Colors.green.shade100 : Colors.red.shade100,
+                                        color: c.isActive == 1 ? const Color.fromARGB(255, 204, 255, 206) : Colors.red.shade100,
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       constraints: const BoxConstraints(
@@ -99,7 +119,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                         child: Text(
                                           c.isActive == 1 ? 'Active' : 'Inactive',
                                           style: TextStyle(
-                                            color: c.isActive == 1 ? Colors.green.shade800 : Colors.red.shade800,
+                                            color: c.isActive == 1 ? AppColors.primaryColor : Colors.red.shade800,
                                             fontWeight: FontWeight.bold,
                                             fontSize: 13, 
                                           ),
@@ -134,9 +154,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openForm(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Add Category'),
-        backgroundColor: AppColors.secondaryColor,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('Add Category', style: TextStyle(color: Colors.white),),
+        backgroundColor: AppColors.primaryColor,
         elevation: 4,
       ),
     );

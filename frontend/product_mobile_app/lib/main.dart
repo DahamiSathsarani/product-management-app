@@ -8,9 +8,13 @@ import 'screens/home_screen.dart';
 import 'services/product_service.dart';
 import 'services/category_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Hive.initFlutter();
+  await Hive.openBox('products'); 
 
   try {
     await dotenv.load(fileName: ".env");
