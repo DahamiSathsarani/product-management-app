@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:product_mobile_app/app/exceptions/api_exception.dart';
 import '../models/product.dart';
 
 class ProductService extends ChangeNotifier {
@@ -13,78 +14,95 @@ class ProductService extends ChangeNotifier {
   int currentPage = 1;
   int lastPage = 1;
 
-  Future<void> fetchProducts({int page = 1}) async {
-    if (page > lastPage) return;
-
+  Future<void> fetchProducts() async {
     isLoading = true;
     notifyListeners();
 
     try {
       final res = await http.get(
-        Uri.parse('$baseUrl/product/get-all?page=$page&limit=20'),
+        Uri.parse('$baseUrl/product/get-all'), 
+        headers: {'Content-Type': 'application/json'},
       );
 
+      _handleResponse(res);
+
       final data = json.decode(res.body);
-
-      currentPage = data['meta']['current_page'];
-      lastPage = data['meta']['last_page'];
-
-      final fetched = (data['products'] as List)
+      products = (data['products'] as List)
           .map((e) => Product.fromJson(e))
           .toList();
-
-      if (page == 1) {
-        products = fetched;
-      } else {
-        products.addAll(fetched);
-      }
     } catch (e) {
       products = [];
+      rethrow;
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
-
-    isLoading = false;
-    notifyListeners();
   }
 
-  Future<void> createProduct(
-      String name, int categoryId, double price, bool isActive) async {
-    await http.post(
-      Uri.parse('$baseUrl/product/create'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'name': name,
-        'category_id': categoryId,
-        'price': price,
-        'is_active': isActive ? 1 : 0,
-      }),
-    );
+  Future<void> createProduct(String name, int categoryId, double price, bool isActive) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/product/create'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'name': name,
+          'category_id': categoryId,
+          'price': price,
+          'is_active': isActive ? 1 : 0,
+        }),
+      );
 
-    fetchProducts(page: 1);
+      _handleResponse(res);
+      await fetchProducts();
+    } catch (e) {
+      rethrow;
+    }
   }
 
-  Future<void> updateProduct(int id, String name, int categoryId,
-      double price, bool isActive) async {
-    await http.put(
-      Uri.parse('$baseUrl/product/update/$id'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'name': name,
-        'category_id': categoryId,
-        'price': price,
-        'is_active': isActive ? 1 : 0,
-      }),
-    );
+  Future<void> updateProduct(int id, String name, int categoryId, double price, bool isActive) async {
+    try {
+      final res = await http.put(
+        Uri.parse('$baseUrl/product/update/$id'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'name': name,
+          'category_id': categoryId,
+          'price': price,
+          'is_active': isActive ? 1 : 0,
+        }),
+      );
 
-    fetchProducts(page: 1);
+      _handleResponse(res);
+      await fetchProducts();
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<void> deleteProduct(int id) async {
-    await http.patch(
-      Uri.parse('$baseUrl/product/soft-delete/$id'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'is_active': 0}),
-    );
+    try {
+      final res = await http.patch(
+        Uri.parse('$baseUrl/product/soft-delete/$id'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'is_active': 0}),
+      );
 
-    fetchProducts(page: 1);
+      _handleResponse(res);
+      await fetchProducts();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  void _handleResponse(http.Response res) {
+    final data = json.decode(res.body);
+
+    if (res.statusCode >= 200 && res.statusCode < 300) return;
+
+    if (data['message'] != null) {
+      throw ApiException(data['message']);
+    }
+
+    throw ApiException('Unexpected error occurred');
   }
 }
