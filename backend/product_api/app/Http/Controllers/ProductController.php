@@ -50,29 +50,41 @@ class ProductController extends Controller
     public function getAll(Request $request)
     {
         $validated = Validator::make($request->all(), [
-            'page' => 'integer|min:1',
-            'limit' => 'integer|min:1|max:100',
+            'search' => 'nullable|string|max:255',
+            'category_id' => 'nullable|integer|exists:product_categories,id',
+            'min_price' => 'nullable|numeric|min:0',
+            'max_price' => 'nullable|numeric|min:0',
         ]);
 
         if ($validated->fails()) {
             return response()->json(['errors' => $validated->errors()], 422);
         }
 
-        $page = $request->input('page', 1);
-        $limit = $request->input('limit', 10);
-
         try {
-            $products = $this->productRepo->paginate($limit);
+            $products = $this->productRepo->all();
+
+            if ($request->filled('search')) {
+                $products = $products->filter(function ($p) use ($request) {
+                    return str_contains(strtolower($p->name), strtolower($request->search));
+                });
+            }
+
+            if ($request->filled('category_id')) {
+                $products = $products->where('category_id', $request->category_id);
+            }
+
+            if ($request->filled('min_price')) {
+                $products = $products->where('price', '>=', $request->min_price);
+            }
+            if ($request->filled('max_price')) {
+                $products = $products->where('price', '<=', $request->max_price);
+            }
+
+            $products = $products->values(); 
 
             return response()->json([
                 'success' => true,
-                'meta' => [
-                    'current_page' => $products->currentPage(),
-                    'last_page' => $products->lastPage(),
-                    'per_page' => $products->perPage(),
-                    'total' => $products->total(),
-                ],
-                'products' => $products->items(),
+                'products' => $products,
             ], 200);
 
         } catch (\Exception $e) {
