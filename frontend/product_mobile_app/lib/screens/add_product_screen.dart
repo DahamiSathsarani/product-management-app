@@ -26,6 +26,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   @override
   void initState() {
     super.initState();
+    context.read<CategoryService>().fetchCategories();
     if (widget.product != null) {
       _nameCtrl.text = widget.product!.name;
       _selectedCategoryId = widget.product!.categoryId;
@@ -122,11 +123,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     const SizedBox(height: 24),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.greyColor,
+                        minimumSize: Size(double.infinity, 48),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       onPressed: _isSubmitting
                           ? null
@@ -145,6 +145,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   ? 'Add Product'
                                   : 'Update Product',
                               style: const TextStyle(
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
