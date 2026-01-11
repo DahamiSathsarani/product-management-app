@@ -243,7 +243,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Confirm Delete', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: const Text('Are you sure you want to delete this category?'),
+        content: const Text('Are you sure you want to delete this category? Deleting it will also inactivate all related products.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
