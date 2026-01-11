@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:product_mobile_app/app/app_colors.dart';
 import 'package:product_mobile_app/widgets/toast_alert.dart';
@@ -5,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../services/product_service.dart';
 import '../services/category_service.dart';
 import '../models/product.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AddProductScreen extends StatefulWidget {
   final Product? product;
@@ -22,6 +24,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
   int? _selectedCategoryId;
   bool _isActive = true;
   bool _isSubmitting = false;
+
+  File? _selectedImage;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -53,6 +68,22 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 key: _formKey,
                 child: ListView(
                   children: [
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        height: 150,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey),
+                        ),
+                        child: _selectedImage == null
+                            ? const Icon(Icons.camera_alt, size: 50, color: Colors.grey)
+                            : Image.file(_selectedImage!, fit: BoxFit.cover),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     TextFormField(
                       controller: _nameCtrl,
                       decoration: InputDecoration(
@@ -170,6 +201,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           _selectedCategoryId!,
           double.tryParse(_priceCtrl.text) ?? 0,
           _isActive,
+          _selectedImage, 
         );
         AppToast.success('Product added successfully');
       } else {
@@ -179,6 +211,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           _selectedCategoryId!,
           double.tryParse(_priceCtrl.text) ?? 0,
           _isActive,
+          _selectedImage,
         );
         AppToast.success('Product updated successfully');
       }

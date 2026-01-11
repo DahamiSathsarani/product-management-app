@@ -33,7 +33,6 @@ class _ProductScreenState extends State<ProductScreen> {
   Widget build(BuildContext context) {
     final service = context.watch<ProductService>();
 
-    /// Group products by category
     final groupedProducts = <String, List<dynamic>>{};
     for (var product in service.products) {
       groupedProducts.putIfAbsent(product.categoryName, () => []);
@@ -43,7 +42,6 @@ class _ProductScreenState extends State<ProductScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
 
-      /// ------------------ APP BAR ------------------
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -63,7 +61,6 @@ class _ProductScreenState extends State<ProductScreen> {
         ],
       ),
 
-      /// ------------------ BODY ------------------
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -94,7 +91,6 @@ class _ProductScreenState extends State<ProductScreen> {
         ),
       ),
 
-      /// ------------------ FAB ------------------
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primaryColor,
         icon: const Icon(Icons.add, color: Colors.white),
@@ -152,14 +148,44 @@ class _ProductScreenState extends State<ProductScreen> {
                 await categoryService.fetchCategories();
               }
 
-              final result = await showDialog<Map<String, dynamic>>(
+              final result = await showGeneralDialog<Map<String, dynamic>>(
                 context: context,
-                builder: (_) => FilterSheet(
-                  categories: categoryService.categories,
-                  selectedCategoryId: selectedCategoryId,
-                  minPrice: minPrice,
-                  maxPrice: maxPrice,
-                ),
+                barrierLabel: "Filter",
+                barrierDismissible: true,
+                barrierColor: Colors.black.withOpacity(0.3),
+                transitionDuration: const Duration(milliseconds: 300),
+                pageBuilder: (context, anim1, anim2) {
+                  return Align(
+                    alignment: Alignment.centerRight,
+                    child: Material(
+                      color: Colors.white,
+                      elevation: 4,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        bottomLeft: Radius.circular(16),
+                      ),
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        height: MediaQuery.of(context).size.height,
+                        child: FilterSheet(
+                          categories: categoryService.categories,
+                          selectedCategoryId: selectedCategoryId,
+                          minPrice: minPrice,
+                          maxPrice: maxPrice,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                transitionBuilder: (context, anim1, anim2, child) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(1, 0),
+                      end: Offset.zero,
+                    ).animate(anim1),
+                    child: child,
+                  );
+                },
               );
 
               if (result != null) {
@@ -241,8 +267,23 @@ class _ProductScreenState extends State<ProductScreen> {
                 color: AppColors.secondaryColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Center(
-                child: Icon(Icons.inventory_2_outlined, size: 30),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: p.image != null && p.image.isNotEmpty
+                    ? Image.network(
+                        p.image,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Center(
+                            child: Icon(Icons.broken_image, size: 30),
+                          );
+                        },
+                      )
+                    : const Center(
+                        child: Icon(Icons.inventory_2_outlined, size: 30),
+                      ),
               ),
             ),
 
