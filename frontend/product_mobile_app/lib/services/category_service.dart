@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:product_mobile_app/app/exceptions/api_exception.dart';
 import '../models/category.dart';
 
 class CategoryService extends ChangeNotifier {
@@ -14,33 +15,29 @@ class CategoryService extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
 
-    final String url = '${baseUrl}/product-category/get-all';
-    debugPrint('Fetching categories from: $url');
-
     try {
-      debugPrint('BASE URL: $baseUrl');
-
       final res = await http.get(
-        Uri.parse(url),
+        Uri.parse('$baseUrl/product-category/get-all'),
         headers: {'Content-Type': 'application/json'},
       );
 
-      debugPrint('Response Body: ${res.body}');
-      
+      _handleResponse(res);
+
       final data = json.decode(res.body);
       categories = (data['categories'] as List)
           .map((e) => Category.fromJson(e))
           .toList();
     } catch (e) {
       categories = [];
+      rethrow;
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
-
-    isLoading = false;
-    notifyListeners();
   }
 
   Future<void> createCategory(String name, bool isActive) async {
-    await http.post(
+    final res = await http.post(
       Uri.parse('$baseUrl/product-category/create'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
@@ -49,11 +46,12 @@ class CategoryService extends ChangeNotifier {
       }),
     );
 
-    fetchCategories();
+    _handleResponse(res);
+    await fetchCategories();
   }
 
   Future<void> updateCategory(int id, String name, bool isActive) async {
-    await http.put(
+    final res = await http.put(
       Uri.parse('$baseUrl/product-category/update/$id'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
@@ -62,16 +60,31 @@ class CategoryService extends ChangeNotifier {
       }),
     );
 
-    fetchCategories();
+    _handleResponse(res);
+    await fetchCategories();
   }
 
   Future<void> deleteCategory(int id) async {
-    await http.patch(
+    final res = await http.patch(
       Uri.parse('$baseUrl/product-category/soft-delete/$id'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({'is_active': 0}),
     );
 
-    fetchCategories();
+    _handleResponse(res);
+    await fetchCategories();
+  }
+
+  void _handleResponse(http.Response res) {
+    final data = json.decode(res.body);
+
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      return;
+    }
+
+    if (data['message'] != null) {
+      throw ApiException(data['message']);
+    }
+
+    throw ApiException('Unexpected error occurred');
   }
 }
