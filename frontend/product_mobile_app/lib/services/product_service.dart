@@ -11,18 +11,32 @@ class ProductService extends ChangeNotifier {
   List<Product> products = [];
   bool isLoading = false;
 
-  int currentPage = 1;
-  int lastPage = 1;
-
-  Future<void> fetchProducts() async {
+  Future<void> fetchProducts({
+    String? search,
+    int? categoryId,
+    double? minPrice,
+    double? maxPrice,
+  }) async {
     isLoading = true;
     notifyListeners();
 
     try {
+      debugPrint('Fetching products with filters - Search: $search, Category ID: $categoryId, Min Price: $minPrice, Max Price: $maxPrice');
+      final queryParameters = <String, String>{};
+
+      if (search != null && search.isNotEmpty) queryParameters['search'] = search;
+      if (categoryId != null) queryParameters['category_id'] = categoryId.toString();
+      if (minPrice != null) queryParameters['min_price'] = minPrice.toString();
+      if (maxPrice != null) queryParameters['max_price'] = maxPrice.toString();
+
+      final uri = Uri.parse('$baseUrl/product/get-all').replace(queryParameters: queryParameters);
+
       final res = await http.get(
-        Uri.parse('$baseUrl/product/get-all'), 
+        uri,
         headers: {'Content-Type': 'application/json'},
       );
+
+      debugPrint('Response Status: ${res.statusCode}, Body: ${res.body}');
 
       _handleResponse(res);
 

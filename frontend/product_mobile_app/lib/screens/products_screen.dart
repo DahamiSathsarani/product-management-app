@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:product_mobile_app/app/app_colors.dart';
-import 'package:product_mobile_app/widgets/common/toast_alert.dart';
+import 'package:product_mobile_app/services/category_service.dart';
+import 'package:product_mobile_app/widgets/filter_sheet.dart';
+import 'package:product_mobile_app/widgets/toast_alert.dart';
 import 'package:provider/provider.dart';
 import '../services/product_service.dart';
 import 'add_product_screen.dart';
@@ -13,6 +15,11 @@ class ProductScreen extends StatefulWidget {
 }
 
 class _ProductScreenState extends State<ProductScreen> {
+  String searchTerm = '';
+  int? selectedCategoryId;
+  double? minPrice;
+  double? maxPrice;
+
   @override
   void initState() {
     super.initState();
@@ -50,6 +57,66 @@ class _ProductScreenState extends State<ProductScreen> {
               ],
             ),
             const SizedBox(height: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Search products...',
+                          prefixIcon: Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          isDense: true,
+                          contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                        ),
+                        onChanged: (value) {
+                          service.fetchProducts(search: value);
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    IconButton(
+                      icon: Icon(Icons.filter_list),
+                      onPressed: () async {
+                        final categoryService = context.read<CategoryService>();
+
+                        if (categoryService.categories.isEmpty) {
+                          await categoryService.fetchCategories();
+                        }
+                        
+                        final result = await showModalBottomSheet<Map<String, dynamic>>(
+                          context: context,
+                          builder: (_) => FilterSheet(
+                            categories: categoryService.categories,
+                            selectedCategoryId: selectedCategoryId,
+                            minPrice: minPrice,
+                            maxPrice: maxPrice,
+                          ),
+                        );
+
+                        if (result != null) {
+                          selectedCategoryId = result['categoryId'];
+                          minPrice = result['minPrice'];
+                          maxPrice = result['maxPrice'];
+
+                          service.fetchProducts(
+                            search: searchTerm,
+                            categoryId: selectedCategoryId,
+                            minPrice: minPrice,
+                            maxPrice: maxPrice,
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12),
+              ],
+            ),
             Expanded(
               child: service.isLoading
                   ? const Center(child: CircularProgressIndicator())
