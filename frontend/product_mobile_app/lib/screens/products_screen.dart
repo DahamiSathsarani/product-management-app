@@ -205,7 +205,7 @@ class _ProductScreenState extends State<ProductScreen> {
         },
         icon: const Icon(Icons.add),
         label: const Text('Add Product'),
-        backgroundColor: AppColors.lightYellowColor,
+        backgroundColor: AppColors.secondaryColor,
         elevation: 4,
       ),
     );

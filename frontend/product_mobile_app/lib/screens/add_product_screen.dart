@@ -43,7 +43,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: Text(widget.product == null ? 'Add Product' : 'Edit Product'),
-        backgroundColor: AppColors.yellowColor,
+        backgroundColor: AppColors.primaryColor,
       ),
       body: categoryService.isLoading
           ? const Center(child: CircularProgressIndicator())

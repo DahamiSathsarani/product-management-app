@@ -3,11 +3,11 @@ import 'app_colors.dart';
 
 class AppTheme {
   static ThemeData lightTheme = ThemeData(
-    fontFamily: 'Roboto',
+    fontFamily: 'Inter',
     scaffoldBackgroundColor: Colors.white,
 
     appBarTheme: AppBarTheme(
-      backgroundColor: AppColors.yellowColor,
+      backgroundColor: AppColors.primaryColor,
       foregroundColor: Colors.white,
       titleTextStyle: TextStyle(
         fontFamily: 'Roboto',
@@ -28,8 +28,8 @@ class AppTheme {
     ),
 
     colorScheme: ColorScheme.fromSeed(
-      seedColor: AppColors.yellowColor,
-      primary: AppColors.yellowColor,
+      seedColor: AppColors.primaryColor,
+      primary: AppColors.primaryColor,
     ),
   );
 }

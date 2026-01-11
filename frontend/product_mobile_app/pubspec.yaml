@@ -40,12 +40,12 @@ flutter:
   #   - images/a_dot_ham.jpeg
 
   fonts:
-    - family: Roboto
+    - family: Inter
       fonts:
-        - asset: assets/fonts/Roboto_Condensed-Regular.ttf
-        - asset: assets/fonts/Roboto_Condensed-Medium.ttf
+        - asset: assets/fonts/Inter_18pt-Regular.ttf
+        - asset: assets/fonts/Inter_18pt-Medium.ttf
           weight: 500
-        - asset: assets/fonts/Roboto_SemiCondensed-SemiBold.ttf
+        - asset: assets/fonts/Inter_18pt-SemiBold.ttf
           weight: 600
-        - asset: assets/fonts/Roboto_Condensed-Bold.ttf
+        - asset: assets/fonts/Inter_18pt-Bold.ttf
           weight: 700
