@@ -6,14 +6,17 @@ use App\Models\ProductCategory;
 use App\Repositories\ProductCategoryRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Repositories\ProductRepository;
 
 class ProductCategoryController extends Controller
 {
     protected $productCategoryRepo;
+    protected $productRepo;
 
-    public function __construct(ProductCategoryRepository $productCategoryRepo)
+    public function __construct(ProductCategoryRepository $productCategoryRepo, ProductRepository $productRepo)
     {
         $this->productCategoryRepo = $productCategoryRepo;
+        $this->productRepo = $productRepo;
     }
 
     public function store(Request $request)
@@ -129,6 +132,7 @@ class ProductCategoryController extends Controller
         }
 
         try {
+            $this->productRepo->inactivateByCategory($id);
             $category = $this->productCategoryRepo->update($id, $validated);
 
             return response()->json([

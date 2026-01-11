@@ -33,6 +33,12 @@ class ProductRepository
         return $product;
     }
 
+    public function inactivateByCategory($categoryId)
+    {
+        return Product::where('category_id', $categoryId)
+                    ->update(['is_active' => 0]);
+    }
+
     public function delete($id)
     {
         $product = Product::findOrFail($id);
