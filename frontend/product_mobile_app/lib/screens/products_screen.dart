@@ -87,14 +87,25 @@ class _ProductScreenState extends State<ProductScreen> {
                         if (categoryService.categories.isEmpty) {
                           await categoryService.fetchCategories();
                         }
-                        
-                        final result = await showModalBottomSheet<Map<String, dynamic>>(
+
+                        final result = await showDialog<Map<String, dynamic>>(
                           context: context,
-                          builder: (_) => FilterSheet(
-                            categories: categoryService.categories,
-                            selectedCategoryId: selectedCategoryId,
-                            minPrice: minPrice,
-                            maxPrice: maxPrice,
+                          builder: (_) => Align(
+                            alignment: Alignment.centerRight, 
+                            child: Material(
+                              child: Container(
+                                width: MediaQuery.of(context).size.width * 0.8,
+                                height: double.infinity,
+                                padding: EdgeInsets.all(16),
+                                color: Colors.white,
+                                child: FilterSheet(
+                                  categories: categoryService.categories,
+                                  selectedCategoryId: selectedCategoryId,
+                                  minPrice: minPrice,
+                                  maxPrice: maxPrice,
+                                ),
+                              ),
+                            ),
                           ),
                         );
 
