@@ -23,6 +23,7 @@ class ProductController extends Controller
             'category_id' => 'required|exists:product_categories,id',
             'price' => 'required|numeric|min:0',
             'is_active' => 'required|boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', 
         ]);
 
         if ($validated->fails()) {
@@ -30,12 +31,22 @@ class ProductController extends Controller
         }
 
         try {
-            $product = $this->productRepo->create([
+            $data = [
                 'name' => $request->name,
                 'category_id' => $request->category_id,
                 'price' => $request->price,
                 'is_active' => $request->is_active,
-            ]);
+            ];
+
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $image->move(public_path('uploads/products'), $imageName);
+                $fullUrl = url('uploads/products/' . $imageName);
+                $data['image'] = $fullUrl;
+            }
+
+            $product = $this->productRepo->create($data);
 
             return response()->json([
                 'success' => true,
