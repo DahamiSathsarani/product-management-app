@@ -14,8 +14,8 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = const [
-    CategoryScreen(),
     ProductScreen(),
+    CategoryScreen(),
   ];
 
   @override
@@ -39,12 +39,12 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.category),
-            label: 'Categories',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.inventory),
             label: 'Products',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.category),
+            label: 'Categories',
           ),
         ],
       ),
