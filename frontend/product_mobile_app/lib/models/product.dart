@@ -5,6 +5,7 @@ class Product {
   final int categoryId;
   final int isActive;
   final String categoryName;
+  final String? image;
 
   Product({
     required this.id,
@@ -13,6 +14,7 @@ class Product {
     required this.categoryId,
     required this.isActive,
     required this.categoryName,
+    this.image,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class Product {
       categoryId: json['category_id'],
       isActive: json['is_active'],
       categoryName: json['category']['name'],
+      image: json['image'],
     );
   }
 }

@@ -4,6 +4,9 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:product_mobile_app/app/exceptions/api_exception.dart';
 import '../models/product.dart';
+import 'dart:io';
+import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
 
 class ProductService extends ChangeNotifier {
   final String baseUrl = dotenv.env['API_BASE_URL']!;
@@ -53,10 +56,20 @@ class ProductService extends ChangeNotifier {
     }
   }
 
-  Future<void> createProduct(String name, int categoryId, double price, bool isActive) async {
-    try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/product/create'),
+  Future<void> createProduct(
+    String name,
+    int categoryId,
+    double price,
+    bool isActive,
+    File? image,
+  ) async {
+    var uri = Uri.parse('$baseUrl/product/create');
+
+    http.Response response;
+
+    if (image == null) {
+      response = await http.post(
+        uri,
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'name': name,
@@ -65,18 +78,45 @@ class ProductService extends ChangeNotifier {
           'is_active': isActive ? 1 : 0,
         }),
       );
+    } else {
+      var request = http.MultipartRequest('POST', uri);
+      request.fields['name'] = name;
+      request.fields['category_id'] = categoryId.toString();
+      request.fields['price'] = price.toString();
+      request.fields['is_active'] = isActive ? '1' : '0';
 
-      _handleResponse(res);
-      await fetchProducts();
-    } catch (e) {
-      rethrow;
+      var mimeType = lookupMimeType(image.path)?.split('/') ?? ['image', 'jpeg'];
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'image',
+          image.path,
+          contentType: MediaType(mimeType[0], mimeType[1]),
+        ),
+      );
+
+      var streamedResponse = await request.send();
+      response = await http.Response.fromStream(streamedResponse);
     }
+
+    _handleResponse(response);
+    await fetchProducts();
   }
 
-  Future<void> updateProduct(int id, String name, int categoryId, double price, bool isActive) async {
-    try {
-      final res = await http.put(
-        Uri.parse('$baseUrl/product/update/$id'),
+  Future<void> updateProduct(
+    int id,
+    String name,
+    int categoryId,
+    double price,
+    bool isActive,
+    File? image, 
+  ) async {
+    var uri = Uri.parse('$baseUrl/product/update/$id');
+
+    http.Response response;
+
+    if (image == null) {
+      response = await http.put(
+        uri,
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'name': name,
@@ -85,12 +125,29 @@ class ProductService extends ChangeNotifier {
           'is_active': isActive ? 1 : 0,
         }),
       );
+    } else {
+      var request = http.MultipartRequest('POST', uri); 
+      request.fields['name'] = name;
+      request.fields['category_id'] = categoryId.toString();
+      request.fields['price'] = price.toString();
+      request.fields['is_active'] = isActive ? '1' : '0';
+      request.fields['_method'] = 'PUT'; 
 
-      _handleResponse(res);
-      await fetchProducts();
-    } catch (e) {
-      rethrow;
+      var mimeType = lookupMimeType(image.path)?.split('/') ?? ['image', 'jpeg'];
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'image',
+          image.path,
+          contentType: MediaType(mimeType[0], mimeType[1]),
+        ),
+      );
+
+      var streamedResponse = await request.send();
+      response = await http.Response.fromStream(streamedResponse);
     }
+
+    _handleResponse(response);
+    await fetchProducts();
   }
 
   Future<void> deleteProduct(int id) async {
