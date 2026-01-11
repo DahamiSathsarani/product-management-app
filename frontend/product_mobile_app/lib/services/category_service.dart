@@ -4,12 +4,31 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:product_mobile_app/app/exceptions/api_exception.dart';
 import '../models/category.dart';
+import 'package:hive/hive.dart';
 
 class CategoryService extends ChangeNotifier {
   final String baseUrl = dotenv.env['API_BASE_URL']!;
 
   List<Category> categories = [];
   bool isLoading = false;
+
+  final Box _productBox = Hive.box('products');
+
+  void _saveCategoriesToLocal() {
+    _productBox.put(
+      'categories',
+      categories.map((c) => c.toJson()).toList(),
+    );
+  }
+
+  void _loadCategoriesFromLocal() {
+    debugPrint('Loading categories');
+    final cached = _productBox.get('categories', defaultValue: []);
+
+    categories = (cached as List)
+        .map((e) => Category.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
 
   Future<void> fetchCategories() async {
     isLoading = true;
@@ -27,6 +46,7 @@ class CategoryService extends ChangeNotifier {
       categories = (data['categories'] as List)
           .map((e) => Category.fromJson(e))
           .toList();
+      _saveCategoriesToLocal();
     } catch (e) {
       categories = [];
       rethrow;
@@ -34,6 +54,16 @@ class CategoryService extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     }
+  }
+
+   Future<void> fetchCategoriesOffline() async {
+    isLoading = true;
+    notifyListeners();
+
+    _loadCategoriesFromLocal();
+
+    isLoading = false;
+    notifyListeners();
   }
 
   Future<void> createCategory(String name, bool isActive) async {
@@ -68,7 +98,10 @@ class CategoryService extends ChangeNotifier {
     final res = await http.patch(
       Uri.parse('$baseUrl/product-category/soft-delete/$id'),
       headers: {'Content-Type': 'application/json'},
+      body: json.encode({'is_active': 0}),
     );
+
+    debugPrint('Delete Category Response: ${res.statusCode}, Body: ${res.body}');
 
     _handleResponse(res);
     await fetchCategories();

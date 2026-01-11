@@ -7,12 +7,31 @@ import '../models/product.dart';
 import 'dart:io';
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
+import 'package:hive/hive.dart';
 
 class ProductService extends ChangeNotifier {
   final String baseUrl = dotenv.env['API_BASE_URL']!;
 
   List<Product> products = [];
   bool isLoading = false;
+
+  final Box _productBox = Hive.box('products');
+
+  void _saveProductsToLocal() {
+    _productBox.put(
+      'list',
+      products.map((p) => p.toJson()).toList(),
+    );
+  }
+
+  void _loadProductsFromLocal() {
+    debugPrint('Loading products');
+    final cached = _productBox.get('list', defaultValue: []);
+
+    products = (cached as List)
+        .map((e) => Product.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
 
   Future<void> fetchProducts({
     String? search,
@@ -47,6 +66,7 @@ class ProductService extends ChangeNotifier {
       products = (data['products'] as List)
           .map((e) => Product.fromJson(e))
           .toList();
+      _saveProductsToLocal();
     } catch (e) {
       products = [];
       rethrow;
@@ -54,6 +74,16 @@ class ProductService extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> fetchProductsOffline() async {
+    isLoading = true;
+    notifyListeners();
+
+    _loadProductsFromLocal();
+
+    isLoading = false;
+    notifyListeners();
   }
 
   Future<void> createProduct(

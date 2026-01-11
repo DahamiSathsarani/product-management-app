@@ -16,4 +16,12 @@ class Category {
       isActive: json['is_active'],
     );
   }
+
+   Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'is_active': isActive,
+    };
+  }
 }

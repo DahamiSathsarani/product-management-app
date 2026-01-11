@@ -21,11 +21,27 @@ class Product {
     return Product(
       id: json['id'],
       name: json['name'],
-      price: double.parse(json['price']),
+      price: json['price'] is String 
+        ? double.parse(json['price']) 
+        : (json['price'] as num).toDouble(),
       categoryId: json['category_id'],
       isActive: json['is_active'],
-      categoryName: json['category']['name'],
+      categoryName: json['category'] is Map
+        ? json['category']['name']
+        : json['category_name'],
       image: json['image'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'price': price,
+      'category_id': categoryId,
+      'is_active': isActive,
+      'category_name': categoryName,
+      'image': image,
+    };
   }
 }
