@@ -23,14 +23,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Product Manager'),
-        backgroundColor: AppColors.yellowColor,
+        backgroundColor: AppColors.primaryColor,
       ),
 
       body: _screens[_currentIndex],
 
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        selectedItemColor: AppColors.yellowColor,
+        selectedItemColor: AppColors.primaryColor,
         unselectedItemColor: Colors.grey,
         onTap: (index) {
           setState(() {

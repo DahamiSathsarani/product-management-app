@@ -136,7 +136,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
         onPressed: () => _openForm(context),
         icon: const Icon(Icons.add),
         label: const Text('Add Category'),
-        backgroundColor: AppColors.lightYellowColor,
+        backgroundColor: AppColors.secondaryColor,
         elevation: 4,
       ),
     );
