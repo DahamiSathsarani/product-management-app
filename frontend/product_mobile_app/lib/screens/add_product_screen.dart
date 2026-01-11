@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:product_mobile_app/app/app_colors.dart';
-import 'package:product_mobile_app/widgets/common/toast_alert.dart';
+import 'package:product_mobile_app/widgets/toast_alert.dart';
 import 'package:provider/provider.dart';
 import '../services/product_service.dart';
 import '../services/category_service.dart';
